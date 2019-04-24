@@ -18,24 +18,23 @@ public class MidiTester {
 
 
     public static void main(String[] args) throws Exception {
-        //Sequence sequence = MidiSystem.getSequence(new File("beethoven_fur_elise.mid"));
+        Sequence sequence = MidiSystem.getSequence(new File("Fur_Elise.mid"));
 
-        //System.out.println("Division type: " + sequence.getDivisionType());
-        System.out.println(Double.NaN);
-        JMidiNote note = new JMidiNote(1, 12, 12);
 //        System.out.println("PPQ (ticks per quarter note): " + sequence.getResolution());
 //
-//        int trackNumber = 0;
-//        for (Track track :  sequence.getTracks()) {
-//            trackNumber++;
-//            System.out.println("Track " + trackNumber + ": size = " + track.size());
-//            System.out.println();
-//            for (int i=0; i < track.size(); i++) {
-//                MidiEvent event = track.get(i);
-//                System.out.print("Tick #: " + event.getTick() + " ");
-//                MidiMessage message = event.getMessage();
-//                if (message instanceof ShortMessage) {
-//                    ShortMessage sm = (ShortMessage) message;
+        int trackNumber = 0;
+        for (Track track : sequence.getTracks()) {
+            trackNumber++;
+            System.out.println("Track " + trackNumber + ": size = " + track.size());
+            System.out.println();
+            for (int i = 0; i < track.size(); i++) {
+                MidiEvent event = track.get(i);
+                //System.out.print("Tick #: " + event.getTick() + " ");
+                MidiMessage message = event.getMessage();
+                if (message instanceof ShortMessage) {
+                    ShortMessage sm = (ShortMessage) message;
+                    JMidiNote midiNote = new JMidiNote(event.getTick(), sm.getChannel(), sm.getData2(), sm.getData1());
+                    System.out.println(midiNote);
 //                    determineChannel(sm);
 //                    if(sm.getCommand() == NOTE_ON || sm.getCommand() == NOTE_OFF)
 //                        commandNote(sm);
@@ -48,7 +47,7 @@ public class MidiTester {
 //                        else
 //                            System.out.println("Command:" + sm.getCommand());
 //                    }
-//                } else {
+                } else {
 //                    //System.out.println();
 //                    if(message instanceof MetaMessage) {
 //                        MetaMessage metaMessage = (MetaMessage) message;
@@ -89,11 +88,14 @@ public class MidiTester {
 //                }
 //            }
 
-            System.out.println();
+                    System.out.println();
+                }
+
+
+            }
         }
-
-
     }
+}
 
 //    private static void determineChannel(ShortMessage ms){
 //        final int RIGHT_HAND = 0;

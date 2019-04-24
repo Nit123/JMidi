@@ -1,4 +1,3 @@
-import javax.sound.midi.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
@@ -6,9 +5,10 @@ import java.util.TreeMap;
 
 public class JMidiNote {
 
-    private int TickStart;
-    private int TickStop;
+    private long tickStart;
+    private long tickStop;
     private String channelName;
+    private String pitchNotation;
     private int dynamic;
     private boolean isOn;
 
@@ -23,27 +23,43 @@ public class JMidiNote {
     private static final int FF = 112;
     private static final int FFF = 127;
 
+    // Note names
+    public static final String[] NOTE_NAMES = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+
     private static TreeMap<Integer, String> CHANNEL_LOOKUP;
 
-    // Constuctor for a note before TickStop is known
-    public JMidiNote (int TickStart, int channelNum, int velocity){
-        if(velocity == 0)
+    // Constuctor for a note before tickStop is known
+    public JMidiNote (long TickStart, int channelNum, int velocity, int key) {
+        if (velocity == 0)
             isOn = false;
-        else{
+        else {
             setDynamic(velocity);
             isOn = true;
         }
 
-        this.TickStart = TickStart;
-        this.TickStop = 0;
+        this.tickStart = TickStart;
+        // default value of tickStop when unknown will be 0 since we can
+        // only start a Note at tick 0.
+        this.tickStop = 0;
 
-        if(CHANNEL_LOOKUP == null)
+        // Checks if we haven't set up MIDI Channel map already
+        if (CHANNEL_LOOKUP == null) {
             try {
                 setUpChannelLookup();
-            } catch(FileNotFoundException e){
+            } catch (FileNotFoundException e) {
                 System.out.println("Oh no.");
             }
+        }
+        // Assumes we have a valid key for the channel
+        if(CHANNEL_LOOKUP.containsKey(channelNum))
+         channelName = CHANNEL_LOOKUP.get(channelNum);
+        else
+            channelName = "" + channelNum;
 
+        // Set up pitch notation
+        int octave = (key / 12) - 1;
+        int note = key % 12;
+        pitchNotation = NOTE_NAMES[note] + octave;
 
     }
 
@@ -79,14 +95,38 @@ public class JMidiNote {
             Scanner infoScanner = new Scanner(channelInfo);
 
             while(infoScanner.hasNext()){
-                int channelNumber = infoScanner.nextInt();
+                int channelNumber = infoScanner.nextInt() - 1;
                 String channelName = infoScanner.next();
                 CHANNEL_LOOKUP.put(channelNumber, channelName);
             }
 
         }
 
-        System.out.println(CHANNEL_LOOKUP);
+        //System.out.println(CHANNEL_LOOKUP);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        String[] DYNAMIC_NAMES = new String[]{"PPP", "PP", "P", "MP", "MF", "F", "FF", "FFF"};
+
+        stringBuilder.append("Starting Tick #: ");
+        stringBuilder.append(tickStart);
+        stringBuilder.append("\n");
+
+        stringBuilder.append("Channel Name: ");
+        stringBuilder.append(channelName);
+        stringBuilder.append("\n");
+
+        stringBuilder.append("Note: ");
+        stringBuilder.append(pitchNotation);
+        stringBuilder.append("\n");
+
+        stringBuilder.append("Dynamic: ");
+        stringBuilder.append(DYNAMIC_NAMES[dynamic]);
+        stringBuilder.append("\n");
+
+        return stringBuilder.toString();
     }
 }
 
