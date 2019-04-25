@@ -9,6 +9,7 @@ public class JMidiNote {
     private long tickStop;
     private String channelName;
     private String pitchNotation;
+    private String clef;
     private int dynamic;
     private boolean isOn;
 
@@ -26,16 +27,21 @@ public class JMidiNote {
     // Note names
     public static final String[] NOTE_NAMES = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
 
+    // MIDI CHANNEL map
     private static TreeMap<Integer, String> CHANNEL_LOOKUP;
+
+    // clef delineator
+    final String TREBLE_SWITCH = "C4";
 
     // Constuctor for a note before tickStop is known
     public JMidiNote (long TickStart, int channelNum, int velocity, int key) {
         if (velocity == 0)
             isOn = false;
         else {
-            setDynamic(velocity);
             isOn = true;
         }
+
+        setDynamic(velocity);
 
         this.tickStart = TickStart;
         // default value of tickStop when unknown will be 0 since we can
@@ -59,12 +65,31 @@ public class JMidiNote {
         // Set up pitch notation
         int octave = (key / 12) - 1;
         int note = key % 12;
-        pitchNotation = NOTE_NAMES[note] + octave;
+        if(octave >= 0)
+            pitchNotation = NOTE_NAMES[note] + octave;
+        else
+            pitchNotation = NOTE_NAMES[note] + octave + " (theoretical)";
+
+        // set up clef
+        if(octave < 4)
+            clef = "BASS";
+        else if(octave > 4)
+            clef = "TREBLE";
+        else{
+            if(NOTE_NAMES[note].compareTo("C") < 0)
+                clef = "BASS";
+            else
+                clef = "TREBLE";
+        }
+
+
 
     }
 
     private void setDynamic(int velocity){
-        if(velocity <= PPP){
+        if(velocity == 0)
+            dynamic = -1;
+        else if(velocity <= PPP){
             dynamic = 0;
         }
         else if(velocity <= PP){
@@ -120,11 +145,18 @@ public class JMidiNote {
 
         stringBuilder.append("Note: ");
         stringBuilder.append(pitchNotation);
+        stringBuilder.append(" (");
+        stringBuilder.append(clef);
+        stringBuilder.append(")");
         stringBuilder.append("\n");
 
         stringBuilder.append("Dynamic: ");
-        stringBuilder.append(DYNAMIC_NAMES[dynamic]);
+        if(dynamic >= 0)
+            stringBuilder.append(DYNAMIC_NAMES[dynamic]);
+        else
+            stringBuilder.append(DYNAMIC_NAMES[0] + " (note off)");
         stringBuilder.append("\n");
+
 
         return stringBuilder.toString();
     }

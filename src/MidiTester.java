@@ -33,8 +33,10 @@ public class MidiTester {
                 MidiMessage message = event.getMessage();
                 if (message instanceof ShortMessage) {
                     ShortMessage sm = (ShortMessage) message;
-                    JMidiNote midiNote = new JMidiNote(event.getTick(), sm.getChannel(), sm.getData2(), sm.getData1());
-                    System.out.println(midiNote);
+                    //if((sm.getData1() / 12) - 1 >= 0) {
+                        JMidiNote midiNote = new JMidiNote(event.getTick(), sm.getChannel(), sm.getData2(), sm.getData1());
+                        System.out.println(midiNote);
+                    //}
 //                    determineChannel(sm);
 //                    if(sm.getCommand() == NOTE_ON || sm.getCommand() == NOTE_OFF)
 //                        commandNote(sm);
@@ -49,9 +51,9 @@ public class MidiTester {
 //                    }
                 } else {
 //                    //System.out.println();
-//                    if(message instanceof MetaMessage) {
-//                        MetaMessage metaMessage = (MetaMessage) message;
-//                        int messageType = metaMessage.getType();
+                    if (message instanceof MetaMessage) {
+                        MetaMessage metaMessage = (MetaMessage) message;
+                        int messageType = metaMessage.getType();
 //                        if(messageType == TIME_SIGNATURE) {
 //                            System.out.println("Time Signature Information: ");
 //                            byte[] timeInfo = metaMessage.getData();
@@ -65,18 +67,11 @@ public class MidiTester {
 //                            System.out.print("Track Name Information.");
 //                        else if(messageType == RANDOM_TEXT)
 //                            System.out.print("Random Text...we don't know..");
-//                        else if(messageType == SET_TEMPO) {
-//                            System.out.println("Set tempo information:");
-//                            byte[] tempo = metaMessage.getData();
-//                            //converts it to int
-//                            int tempoInt = (tempo[0] & 0xff) << 16 | (tempo[1] & 0xff) << 8 | (tempo[2] & 0xff);
-//                            int bpm = 60000000 / tempoInt;
-//                            System.out.println("Tempo: " + bpm);
-//                            double tickLength = sequence.getResolution() * (bpm / 60.0);
-//
-//                            System.out.println("Ticks per second " + tickLength);
-//                            System.out.println("Seconds per tick: " + 1.0 / tickLength);
-//                        }
+                        if (messageType == SET_TEMPO) {
+                            byte[] tempo = metaMessage.getData();
+                            JMidiTempo midiTempo = new JMidiTempo(event.getTick(), sequence.getResolution(), tempo);
+                            System.out.println(midiTempo);
+                        }
 //                        else if(messageType == END_OF_TRACK)
 //                            System.out.print("End of Track.");
 //                        else
@@ -88,10 +83,11 @@ public class MidiTester {
 //                }
 //            }
 
-                    System.out.println();
+                        System.out.println();
+                    }
+
+
                 }
-
-
             }
         }
     }
