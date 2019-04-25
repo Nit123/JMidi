@@ -12,6 +12,9 @@ public class JMidiNote {
     private String clef;
     private int dynamic;
     private boolean isOn;
+    private long noteInTermsOfQuarter;
+
+    private final int PPQ;
 
     // VELOCITY TO DYNAMIC (upper bounds)
     // Somewhat arbitrary values found from this: https://en.wikipedia.org/wiki/File:Dynamic%27s_Note_Velocity.svg
@@ -28,13 +31,15 @@ public class JMidiNote {
     public static final String[] NOTE_NAMES = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
 
     // MIDI CHANNEL map
-    private static TreeMap<Integer, String> CHANNEL_LOOKUP;
+    public static TreeMap<Integer, String> CHANNEL_LOOKUP;
 
     // clef delineator
     final String TREBLE_SWITCH = "C4";
 
     // Constuctor for a note before tickStop is known
-    public JMidiNote (long TickStart, int channelNum, int velocity, int key) {
+    public JMidiNote (long TickStart, int channelNum, int velocity, int key, int ppq) {
+        PPQ = ppq;
+
         if (velocity == 0)
             isOn = false;
         else {
@@ -48,14 +53,6 @@ public class JMidiNote {
         // only start a Note at tick 0.
         this.tickStop = 0;
 
-        // Checks if we haven't set up MIDI Channel map already
-        if (CHANNEL_LOOKUP == null) {
-            try {
-                setUpChannelLookup();
-            } catch (FileNotFoundException e) {
-                System.out.println("Oh no.");
-            }
-        }
         // Assumes we have a valid key for the channel
         if(CHANNEL_LOOKUP.containsKey(channelNum))
          channelName = CHANNEL_LOOKUP.get(channelNum);
@@ -86,6 +83,18 @@ public class JMidiNote {
 
     }
 
+    private void setUpNoteLength(){
+        if(getLengthOfNoteInTicks() > 0){
+            // actually has a note length
+            long deltaTicks = getLengthOfNoteInTicks();
+            noteInTermsOfQuarter = deltaTicks / PPQ;
+        }
+    }
+
+    public long getLengthOfNoteInTicks(){
+        return tickStop - tickStart;
+    }
+
     private void setDynamic(int velocity){
         if(velocity == 0)
             dynamic = -1;
@@ -111,20 +120,22 @@ public class JMidiNote {
     }
 
     // Credit to Ansh Shah for coming up with a text file to store MIDI channel information.
-    private static void setUpChannelLookup() throws FileNotFoundException {
-        CHANNEL_LOOKUP = new TreeMap<>();
-        Scanner channelScan = new Scanner(new File("MIDI_Channels.txt"));
+    public static void setUpChannelLookup() throws FileNotFoundException {
+        if(CHANNEL_LOOKUP == null) {
+            CHANNEL_LOOKUP = new TreeMap<>();
+            Scanner channelScan = new Scanner(new File("MIDI_Channels.txt"));
 
-        while(channelScan.hasNextLine()){
-            String channelInfo = channelScan.nextLine();
-            Scanner infoScanner = new Scanner(channelInfo);
+            while (channelScan.hasNextLine()) {
+                String channelInfo = channelScan.nextLine();
+                Scanner infoScanner = new Scanner(channelInfo);
 
-            while(infoScanner.hasNext()){
-                int channelNumber = infoScanner.nextInt() - 1;
-                String channelName = infoScanner.next();
-                CHANNEL_LOOKUP.put(channelNumber, channelName);
+                while (infoScanner.hasNext()) {
+                    int channelNumber = infoScanner.nextInt() - 1;
+                    String channelName = infoScanner.next();
+                    CHANNEL_LOOKUP.put(channelNumber, channelName);
+                }
+
             }
-
         }
 
         //System.out.println(CHANNEL_LOOKUP);
