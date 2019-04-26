@@ -36,35 +36,6 @@ public class MidiTester {
                         JMidiNote midiNote = new JMidiNote(event.getTick(), sm.getChannel(), sm.getData2(), sm.getData1(), sequence.getResolution());
                         System.out.println(midiNote);
                     }
-//                    else {
-                    else if(message instanceof MetaMessage){
-                        MetaMessage metaMessage = (MetaMessage) message;
-                        int messageType = metaMessage.getType();
-//                        if(messageType == TIME_SIGNATURE) {
-//                            System.out.println("Time Signature Information: ");
-//                            byte[] timeInfo = metaMessage.getData();
-//                            System.out.println("Time Signature: " + timeInfo[0] + "/" + (int) Math.pow(2, timeInfo[1]));
-//                            System.out.println("MIDI ticks per metronome click: " + timeInfo[2]);
-//                            System.out.println("32nd notes per MIDI quarter note: " + timeInfo[3]);
-//                        }
-//                        else if(messageType == KEY_SIGNATURE)
-//                            System.out.print("Key Signature Information.");
-//                        else if(messageType == TRACK_NAME)
-//                            System.out.print("Track Name Information.");
-//                        else if(messageType == RANDOM_TEXT)
-//                            System.out.print("Random Text...we don't know..");
-                        if (messageType == SET_TEMPO) {
-                            byte[] tempo = metaMessage.getData();
-                            JMidiTempo midiTempo = new JMidiTempo(event.getTick(), sequence.getResolution(), tempo);
-                            System.out.println(midiTempo);
-                        }
-//                        else if(messageType == END_OF_TRACK)
-//                            System.out.print("End of Track.");
-//                        else
-//                            System.out.print("Type of MetaMessage: " + metaMessage.getType());
-//
-//                        System.out.println();
-                    }
                     else if (sm.getCommand() == PROGRAM_CHANGE) {
                         System.out.print("Select Channel Mode: ");
                         JMidiNote.setUpChannelLookup();
@@ -72,16 +43,47 @@ public class MidiTester {
                         System.out.println();
                     }
 //                        }
-                        else if(sm.getCommand() == MIDI_CONTROL_CHANGE) {
-                            JMidiControl.initMessageSet();
-                            JMidiControl control = new JMidiControl(sm.getData1(), sm.getData2());
-                            System.out.print(control);
-                            System.out.println();
+                    else if (sm.getCommand() == MIDI_CONTROL_CHANGE) {
+                        JMidiControl.initMessageSet();
+                        JMidiControl control = new JMidiControl(sm.getData1(), sm.getData2());
+                        System.out.print(control);
+                        System.out.println();
+                    }
+                }
+                    else {
+                    if (message instanceof MetaMessage) {
+                            //ShortMessage sm = (ShortMessage) message;
+                            MetaMessage metaMessage = (MetaMessage) message;
+                            int messageType = metaMessage.getType();
+                            if (messageType == TIME_SIGNATURE) {
+                                byte[] timeInfo = metaMessage.getData();
+                                JMidiTimeSign time = new JMidiTimeSign(timeInfo);
+                                System.out.println(time);
+                            }
+//                        else if(messageType == KEY_SIGNATURE)
+//                            System.out.print("Key Signature Information.");
+//                        else if(messageType == TRACK_NAME)
+//                            System.out.print("Track Name Information.");
+//                        else if(messageType == RANDOM_TEXT)
+//                            System.out.print("Random Text...we don't know..");
+                            if (messageType == SET_TEMPO) {
+                                byte[] tempo = metaMessage.getData();
+                                JMidiTempo midiTempo = new JMidiTempo(event.getTick(), sequence.getResolution(), tempo);
+                                System.out.println(midiTempo);
+                            } else if (messageType == END_OF_TRACK) {
+                                JMidiControl mes = new JMidiControl();
+                                System.out.println(mes);
+                            }
+//                        else
+//                            System.out.print("Type of MetaMessage: " + metaMessage.getType());
+//
+//                        System.out.println();
+                        }
                     }
 //                        else
 //                            System.out.println("Command:" + sm.getCommand());
 //                    }
-                    } else {
+                    }
 //                    //System.out.println();
 
 //                }
@@ -93,8 +95,7 @@ public class MidiTester {
 
                     }
                 }
-            }
-        }
+
 
 
 

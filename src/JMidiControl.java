@@ -9,6 +9,8 @@ public class JMidiControl {
     public static TreeSet<MidiControlMessage> MESSAGE_SET = new TreeSet<>();
     private final static String UNDEFINED = "UNDEFINED";
 
+    private final static int END_OF_TRACK = -1;
+
     private int codeNumber;
     private int currentStatus;
 
@@ -42,6 +44,7 @@ public class JMidiControl {
         }
     }
 
+
     public JMidiControl(int codeNum, int dataNum) throws FileNotFoundException{
         if(MESSAGE_SET == null)
             initMessageSet();
@@ -50,10 +53,20 @@ public class JMidiControl {
         currentStatus = dataNum;
     }
 
+    public JMidiControl(){
+        codeNumber = END_OF_TRACK;
+        currentStatus = END_OF_TRACK;
+    }
+
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
         MidiControlMessage message = null;
+
+        if(codeNumber == END_OF_TRACK){
+            return "MIDI END OF TRACK";
+        }
+
         for(MidiControlMessage mes: MESSAGE_SET){
             if(mes.codeNum == codeNumber){
                 message = mes;
