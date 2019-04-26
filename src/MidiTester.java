@@ -4,7 +4,7 @@ import java.io.File;
 public class MidiTester {
     public static final int NOTE_ON = 0x90;
     public static final int NOTE_OFF = 0x80;
-    public static final int SELECT_CHANNEL_MODE = 0xB0;
+    public static final int MIDI_CONTROL_CHANGE = 0xB0;
     public static final int PROGRAM_CHANGE = 0xC0;
 
 
@@ -37,26 +37,9 @@ public class MidiTester {
                         System.out.println(midiNote);
                     }
 //                    else {
-                    else if (sm.getCommand() == PROGRAM_CHANGE) {
-                        System.out.print("Select Channel Mode: ");
-                        JMidiNote.setUpChannelLookup();
-                        System.out.print(JMidiNote.CHANNEL_LOOKUP.get(sm.getData1()));
-                        System.out.println();
-                    }
-//                        }
-                        else if(sm.getCommand() == SELECT_CHANNEL_MODE) {
-                            System.out.print("MIDI Control Change: ");
-                            System.out.print(sm.getData1() + " " + sm.getData2());
-                            System.out.println();
-                    }
-//                        else
-//                            System.out.println("Command:" + sm.getCommand());
-//                    }
-                    } else {
-//                    //System.out.println();
-                        if (message instanceof MetaMessage) {
-                            MetaMessage metaMessage = (MetaMessage) message;
-                            int messageType = metaMessage.getType();
+                    else if(message instanceof MetaMessage){
+                        MetaMessage metaMessage = (MetaMessage) message;
+                        int messageType = metaMessage.getType();
 //                        if(messageType == TIME_SIGNATURE) {
 //                            System.out.println("Time Signature Information: ");
 //                            byte[] timeInfo = metaMessage.getData();
@@ -70,19 +53,37 @@ public class MidiTester {
 //                            System.out.print("Track Name Information.");
 //                        else if(messageType == RANDOM_TEXT)
 //                            System.out.print("Random Text...we don't know..");
-                            if (messageType == SET_TEMPO) {
-                                byte[] tempo = metaMessage.getData();
-                                JMidiTempo midiTempo = new JMidiTempo(event.getTick(), sequence.getResolution(), tempo);
-                                System.out.println(midiTempo);
-                            }
+                        if (messageType == SET_TEMPO) {
+                            byte[] tempo = metaMessage.getData();
+                            JMidiTempo midiTempo = new JMidiTempo(event.getTick(), sequence.getResolution(), tempo);
+                            System.out.println(midiTempo);
+                        }
 //                        else if(messageType == END_OF_TRACK)
 //                            System.out.print("End of Track.");
 //                        else
 //                            System.out.print("Type of MetaMessage: " + metaMessage.getType());
 //
 //                        System.out.println();
+                    }
+                    else if (sm.getCommand() == PROGRAM_CHANGE) {
+                        System.out.print("Select Channel Mode: ");
+                        JMidiNote.setUpChannelLookup();
+                        System.out.print(JMidiNote.CHANNEL_LOOKUP.get(sm.getData1()));
+                        System.out.println();
+                    }
+//                        }
+                        else if(sm.getCommand() == MIDI_CONTROL_CHANGE) {
+                            JMidiControl.initMessageSet();
+                            JMidiControl control = new JMidiControl(sm.getData1(), sm.getData2());
+                            System.out.print(control);
+                            System.out.println();
+                    }
+//                        else
+//                            System.out.println("Command:" + sm.getCommand());
 //                    }
-//                    // System.out.println("Other message: " + message.getClass());
+                    } else {
+//                    //System.out.println();
+
 //                }
 //            }
 
@@ -94,7 +95,6 @@ public class MidiTester {
                 }
             }
         }
-    }
 
 
 
