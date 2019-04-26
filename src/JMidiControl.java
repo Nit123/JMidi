@@ -17,7 +17,7 @@ public class JMidiControl {
 
         while(undefinedScan.hasNext()){
             int codeNum = undefinedScan.nextInt();
-            int[] codingInformation = new int[]{codeNum, 0, 0}
+            int[] codingInformation = new int[]{codeNum, 0, 0};
             CONTROL_MESSAGE.put(UNDEFINED, codingInformation);
         }
 
