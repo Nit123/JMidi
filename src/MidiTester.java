@@ -14,6 +14,7 @@ public class MidiTester {
     public static final int RANDOM_TEXT = 0x01;
     public static final int SET_TEMPO = 0x51;
     public static final int END_OF_TRACK = 0x2F;
+    public static final int MIDI_PORT_MESSAGE = 0x21;
 
 
     public static void main(String[] args) throws Exception {
@@ -35,8 +36,7 @@ public class MidiTester {
                     if (sm.getCommand() == NOTE_ON || sm.getCommand() == NOTE_OFF) {
                         JMidiNote midiNote = new JMidiNote(event.getTick(), sm.getChannel(), sm.getData2(), sm.getData1(), sequence.getResolution());
                         System.out.println(midiNote);
-                    }
-                    else if (sm.getCommand() == PROGRAM_CHANGE) {
+                    } else if (sm.getCommand() == PROGRAM_CHANGE) {
                         System.out.print("Select Channel Mode: ");
                         JMidiNote.setUpChannelLookup();
                         System.out.print(JMidiNote.CHANNEL_LOOKUP.get(sm.getData1()));
@@ -49,52 +49,49 @@ public class MidiTester {
                         System.out.print(control);
                         System.out.println();
                     }
-                }
-                    else {
+                } else {
                     if (message instanceof MetaMessage) {
-                            //ShortMessage sm = (ShortMessage) message;
-                            MetaMessage metaMessage = (MetaMessage) message;
-                            int messageType = metaMessage.getType();
-                            if (messageType == TIME_SIGNATURE) {
-                                byte[] timeInfo = metaMessage.getData();
-                                JMidiTimeSign time = new JMidiTimeSign(timeInfo);
-                                System.out.println(time);
-                            }
-//                        else if(messageType == KEY_SIGNATURE)
-//                            System.out.print("Key Signature Information.");
-//                        else if(messageType == TRACK_NAME)
-//                            System.out.print("Track Name Information.");
-//                        else if(messageType == RANDOM_TEXT)
-//                            System.out.print("Random Text...we don't know..");
-                            if (messageType == SET_TEMPO) {
-                                byte[] tempo = metaMessage.getData();
-                                JMidiTempo midiTempo = new JMidiTempo(event.getTick(), sequence.getResolution(), tempo);
-                                System.out.println(midiTempo);
-                            } else if (messageType == END_OF_TRACK) {
-                                JMidiControl mes = new JMidiControl();
-                                System.out.println(mes);
-                            }
-//                        else
-//                            System.out.print("Type of MetaMessage: " + metaMessage.getType());
-//
-//                        System.out.println();
-                        }
-                    }
-//                        else
-//                            System.out.println("Command:" + sm.getCommand());
-//                    }
-                    }
-//                    //System.out.println();
+                        MetaMessage metaMessage = (MetaMessage) message;
+                        int messageType = metaMessage.getType();
+                        if (messageType == TIME_SIGNATURE) {
+                            byte[] timeInfo = metaMessage.getData();
+                            JMidiTimeSign time = new JMidiTimeSign(timeInfo);
+                            System.out.println(time);
+                        } else if (messageType == KEY_SIGNATURE) {
+                            if (JMidiKeySign.KEY_SIGNATURES == null)
+                                JMidiKeySign.initList();
 
-//                }
-//            }
-
+                            byte[] keyInfo = metaMessage.getData();
+                            JMidiKeySign.JKeySignature keySign = JMidiKeySign.findKey(keyInfo);
+                            System.out.println(keySign);
+                        } else if (messageType == TRACK_NAME || messageType == RANDOM_TEXT) {
+                            // NEVER USED IN SAMPLE BUT THIS IS WHAT WE WOULD DO
+                            System.out.println("TRACK NAME:");
+                            byte[] trackInfo = metaMessage.getData();
+                            for (byte info : trackInfo)
+                                System.out.print((char) info);
                             System.out.println();
-                        }
+                        } else if (messageType == SET_TEMPO) {
+                            byte[] tempo = metaMessage.getData();
+                            JMidiTempo midiTempo = new JMidiTempo(event.getTick(), sequence.getResolution(), tempo);
+                            System.out.println(midiTempo);
+                        } else if (messageType == END_OF_TRACK) {
+                            JMidiControl mes = new JMidiControl();
+                            System.out.println(mes);
+                        } else if (messageType == MIDI_PORT_MESSAGE) {
+                            System.out.println("MIDI Port: " + (metaMessage.getData()[0] + 1));
+                        } else
+                            System.out.print("Type of MetaMessage: " + metaMessage.getType());
 
-
+                        System.out.println();
                     }
+
+
                 }
+            }
+        }
+    }
+}
 
 
 

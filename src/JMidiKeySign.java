@@ -5,40 +5,64 @@ import java.util.Scanner;
 
 public class JMidiKeySign {
 
-    public static HashSet<KeySignature> KEY_SIGNATURES;
+    public static HashSet<JKeySignature> KEY_SIGNATURES;
 
     public static void initList() throws FileNotFoundException {
         Scanner fileScan = new Scanner(new File("MIDI_Key_Signature.txt"));
+        KEY_SIGNATURES = new HashSet<>();
 
-        while(fileScan.hasNextLine()){
+        while (fileScan.hasNextLine()) {
             String key = fileScan.nextLine();
             Scanner keyScan = new Scanner(key);
 
-            while(keyScan.hasNextLine()){
+            while (keyScan.hasNextLine()) {
                 int sharps = keyScan.nextInt();
                 int flats = keyScan.nextInt();
                 String major = keyScan.next();
                 keyScan.next();
                 String minor = keyScan.next();
 
-                KeySignature keySign = new KeySignature(sharps, flats, major, minor);
+                JKeySignature keySign = new JKeySignature(sharps, flats, major, minor);
                 KEY_SIGNATURES.add(keySign);
             }
         }
     }
+    public static JKeySignature findKey(byte[] keyData){
+        JKeySignature key = null;
+        for (JKeySignature keySign : KEY_SIGNATURES) {
+            if (keySign.numberOfSharps == keyData[0] && keySign.numberOfFlats == keyData[1])
+                key = keySign;
+        }
 
-    private static class KeySignature{
+        return key;
+    }
+
+
+    public static class JKeySignature {
         private int numberOfSharps;
         private int numberOfFlats;
         private String majorName;
         private String minorName;
 
-        public KeySignature(int sharps, int flats, String major, String minor){
+        public JKeySignature(int sharps, int flats, String major, String minor){
             numberOfFlats = flats;
             numberOfSharps = sharps;
             majorName = major;
             minorName = minor;
         }
+
+        @Override
+        public String toString(){
+            StringBuilder keyStringBuilder = new StringBuilder();
+            keyStringBuilder.append("KEY SIGNATURE INFORMATION: \n");
+            keyStringBuilder.append("Major: " + majorName + "\n");
+            keyStringBuilder.append("Minor: " + minorName + "\n");
+            keyStringBuilder.append("(" + numberOfSharps + "#, " + numberOfFlats + "b)\n");
+
+            return keyStringBuilder.toString();
+        }
     }
+
+
 
 }
