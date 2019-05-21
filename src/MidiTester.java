@@ -1,5 +1,8 @@
 import javax.sound.midi.*;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class MidiTester {
     public static final int NOTE_ON = 0x90;
@@ -22,6 +25,10 @@ public class MidiTester {
 
 //        System.out.println("PPQ (ticks per quarter note): " + sequence.getResolution());
 //
+
+        Queue<JMidiNote> notesLeftToAssign = new LinkedList<>();
+        ArrayList<JMidiNote> completedNotes = new ArrayList<>();
+
         int trackNumber = 0;
         for (Track track : sequence.getTracks()) {
             trackNumber++;
@@ -34,9 +41,31 @@ public class MidiTester {
                 if (message instanceof ShortMessage) {
                     ShortMessage sm = (ShortMessage) message;
                     if (sm.getCommand() == NOTE_ON || sm.getCommand() == NOTE_OFF) {
-                        JMidiNote midiNote = new JMidiNote(event.getTick(), sm.getChannel(), sm.getData2(), sm.getData1(), sequence.getResolution());
+                        JMidiNote midiNote = new JMidiNote(event.getTick(), sm.getChannel(), sm.getData2(),
+                                sm.getData1(), sequence.getResolution());
+                        notesLeftToAssign.add(midiNote);
                         System.out.println(midiNote);
-                    } else if (sm.getCommand() == PROGRAM_CHANGE) {
+                    }
+//                    } else if(sm.getCommand() == NOTE_OFF || sm.getData2() == 0){
+//                        // NOTE OFF
+//                        boolean found = false;
+//                        JMidiNote noteOff = new JMidiNote(sm.getChannel(), sm.getData1(), sequence.getResolution());
+//
+//                        while(!found){
+//                            JMidiNote note = notesLeftToAssign.remove();
+//                            if(noteOff.isEndNoteOfThisNote(note)){
+//                                note.setTickStop(noteOff.getTickStart());
+//                                note.setUpNoteLength();
+//                                found = true;
+//                                completedNotes.add(note);
+//                                System.out.println(note);
+//                            }
+//                            else{
+//                                notesLeftToAssign.add(note);
+//                            }
+//                        }
+//                    }
+                    else if (sm.getCommand() == PROGRAM_CHANGE) {
                         System.out.print("Select Channel Mode: ");
                         JMidiNote.setUpChannelLookup();
                         System.out.print(JMidiNote.CHANNEL_LOOKUP.get(sm.getData1()));

@@ -1,9 +1,10 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Scanner;
 import java.util.TreeMap;
 
-public class JMidiNote {
+public class JMidiNote implements Comparable<JMidiNote>{
 
     private long tickStart;
     private long tickStop;
@@ -34,10 +35,10 @@ public class JMidiNote {
     public static TreeMap<Integer, String> CHANNEL_LOOKUP;
 
     // clef delineator
-    final String TREBLE_SWITCH = "C4";
+    private final String TREBLE_SWITCH = "C4";
 
     // Constuctor for a note before tickStop is known
-    public JMidiNote (long TickStart, int channelNum, int velocity, int key, int ppq) {
+    public JMidiNote (long TickStart, int channelNum, int velocity, int key, int ppq) throws IOException {
         PPQ = ppq;
 
         if (velocity == 0)
@@ -52,6 +53,9 @@ public class JMidiNote {
         // default value of tickStop when unknown will be 0 since we can
         // only start a Note at tick 0.
         this.tickStop = 0;
+
+        if(CHANNEL_LOOKUP == null)
+            setUpChannelLookup();
 
         // Assumes we have a valid key for the channel
         if(CHANNEL_LOOKUP.containsKey(channelNum))
@@ -83,7 +87,32 @@ public class JMidiNote {
 
     }
 
-    private void setUpNoteLength(){
+    // Used for temporary JMidiNotes that are actually note-off
+    // messages.
+    public JMidiNote(int channelNum, int key, int ppq) throws IOException{
+        // Assumes we have a valid key for the channel
+        PPQ = ppq;
+
+        isOn = false;
+
+        if(CHANNEL_LOOKUP == null)
+            setUpChannelLookup();
+
+        if(CHANNEL_LOOKUP.containsKey(channelNum))
+            channelName = CHANNEL_LOOKUP.get(channelNum);
+        else
+            channelName = "" + channelNum;
+
+        // Set up pitch notation
+        int octave = (key / 12) - 1;
+        int note = key % 12;
+        if(octave >= 0)
+            pitchNotation = NOTE_NAMES[note] + octave;
+        else
+            pitchNotation = NOTE_NAMES[note] + octave + " (theoretical)";
+    }
+
+    public void setUpNoteLength(){
         if(getLengthOfNoteInTicks() > 0){
             // actually has a note length
             long deltaTicks = getLengthOfNoteInTicks();
@@ -91,7 +120,15 @@ public class JMidiNote {
         }
     }
 
-    public long getLengthOfNoteInTicks(){
+    public boolean isEndNoteOfThisNote(JMidiNote startNote){
+        if(isOn)
+            throw new IllegalStateException("isEndNoteOfThisNote can only be called by a note-off JMidiNote.");
+
+        return (startNote.pitchNotation.equals(pitchNotation) && channelName.equals(startNote.channelName) &&
+                startNote.PPQ == PPQ);
+    }
+
+    private long getLengthOfNoteInTicks(){
         return tickStop - tickStart;
     }
 
@@ -168,8 +205,29 @@ public class JMidiNote {
             stringBuilder.append(DYNAMIC_NAMES[0] + " (note off)");
         stringBuilder.append("\n");
 
+        stringBuilder.append("Ratio to quarter-note: ");
+        stringBuilder.append(noteInTermsOfQuarter);
+        stringBuilder.append("\n");
+
 
         return stringBuilder.toString();
+    }
+
+    public void setTickStop(long tickStop) {
+        this.tickStop = tickStop;
+    }
+
+    public long getTickStart() {
+        return tickStart;
+    }
+
+    @Override
+    public int compareTo(JMidiNote o) {
+        if(tickStart > o.tickStart)
+            return 1;
+        else {
+            return -1;
+        }
     }
 }
 

@@ -3,12 +3,18 @@ import java.io.FileNotFoundException;
 import java.util.HashSet;
 import java.util.Scanner;
 
+/** Represents a MIDI Key Signature Event.
+ * @author Nitesh Kartha
+ * @version 0.1 (Larghissimo)
+ */
 public class JMidiKeySign {
 
     public static HashSet<JKeySignature> KEY_SIGNATURES;
 
+    private static String PATH_NAME_FOR_KEY_SIGNATURES = "MIDI_Key_Signature.txt";
+
     public static void initList() throws FileNotFoundException {
-        Scanner fileScan = new Scanner(new File("MIDI_Key_Signature.txt"));
+        Scanner fileScan = new Scanner(new File(PATH_NAME_FOR_KEY_SIGNATURES));
         KEY_SIGNATURES = new HashSet<>();
 
         while (fileScan.hasNextLine()) {
