@@ -12,8 +12,8 @@ public class JMidiNote implements Comparable<JMidiNote>{
     private String pitchNotation;
     private String clef;
     private int dynamic;
-    private boolean isOn;
-    private long noteInTermsOfQuarter;
+    public boolean isOn;
+    private double noteInTermsOfQuarter;
 
     private final int PPQ;
 
@@ -89,9 +89,10 @@ public class JMidiNote implements Comparable<JMidiNote>{
 
     // Used for temporary JMidiNotes that are actually note-off
     // messages.
-    public JMidiNote(int channelNum, int key, int ppq) throws IOException{
+    public JMidiNote(long tickStart, int channelNum, int key, int ppq) throws IOException{
         // Assumes we have a valid key for the channel
         PPQ = ppq;
+        this.tickStart = tickStart;
 
         isOn = false;
 
@@ -116,7 +117,8 @@ public class JMidiNote implements Comparable<JMidiNote>{
         if(getLengthOfNoteInTicks() > 0){
             // actually has a note length
             long deltaTicks = getLengthOfNoteInTicks();
-            noteInTermsOfQuarter = deltaTicks / PPQ;
+            noteInTermsOfQuarter = deltaTicks / (double) PPQ;
+            noteInTermsOfQuarter = (double)Math.round(noteInTermsOfQuarter * 100d) / 100d;
         }
     }
 

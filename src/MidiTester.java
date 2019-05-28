@@ -23,11 +23,7 @@ public class MidiTester {
     public static void main(String[] args) throws Exception {
         Sequence sequence = MidiSystem.getSequence(new File("Fur_Elise.mid"));
 
-//        System.out.println("PPQ (ticks per quarter note): " + sequence.getResolution());
-//
-
-        Queue<JMidiNote> notesLeftToAssign = new LinkedList<>();
-        ArrayList<JMidiNote> completedNotes = new ArrayList<>();
+        LinkedList<JMidiNote> notes = new LinkedList<>();
 
         int trackNumber = 0;
         for (Track track : sequence.getTracks()) {
@@ -40,31 +36,30 @@ public class MidiTester {
                 MidiMessage message = event.getMessage();
                 if (message instanceof ShortMessage) {
                     ShortMessage sm = (ShortMessage) message;
-                    if (sm.getCommand() == NOTE_ON || sm.getCommand() == NOTE_OFF) {
+                    if (sm.getCommand() == NOTE_ON && sm.getData2() != 0) {
                         JMidiNote midiNote = new JMidiNote(event.getTick(), sm.getChannel(), sm.getData2(),
                                 sm.getData1(), sequence.getResolution());
-                        notesLeftToAssign.add(midiNote);
-                        System.out.println(midiNote);
+                        notes.add(midiNote);
+                        //System.out.println(midiNote);
                     }
-//                    } else if(sm.getCommand() == NOTE_OFF || sm.getData2() == 0){
-//                        // NOTE OFF
-//                        boolean found = false;
-//                        JMidiNote noteOff = new JMidiNote(sm.getChannel(), sm.getData1(), sequence.getResolution());
-//
-//                        while(!found){
-//                            JMidiNote note = notesLeftToAssign.remove();
-//                            if(noteOff.isEndNoteOfThisNote(note)){
-//                                note.setTickStop(noteOff.getTickStart());
-//                                note.setUpNoteLength();
-//                                found = true;
-//                                completedNotes.add(note);
-//                                System.out.println(note);
-//                            }
-//                            else{
-//                                notesLeftToAssign.add(note);
-//                            }
-//                        }
-//                    }
+                    else if(sm.getData2() == 0){
+                        // NOTE OFF
+                        JMidiNote noteOff = new JMidiNote(event.getTick(),sm.getChannel(), sm.getData1(), sequence.getResolution());
+                        //System.out.println(sm.getData1());
+                        //System.out.println(noteOff);
+
+                        for(JMidiNote possibleNote : notes){
+                            if(possibleNote.isOn && noteOff.isEndNoteOfThisNote(possibleNote)){
+                                // found it!
+                                possibleNote.setTickStop(noteOff.getTickStart());
+                                possibleNote.setUpNoteLength();
+                                possibleNote.isOn = false;
+                                System.out.println(possibleNote);
+                                break;
+                            }
+                        }
+
+                    }
                     else if (sm.getCommand() == PROGRAM_CHANGE) {
                         System.out.print("Select Channel Mode: ");
                         JMidiNote.setUpChannelLookup();
