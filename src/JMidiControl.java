@@ -15,7 +15,7 @@ public class JMidiControl {
     private int currentStatus;
 
     public static void initMessageSet() throws FileNotFoundException {
-        Scanner codeScan = new Scanner(new File("MIDI_Control_Change_Codes.txt"));
+        Scanner codeScan = new Scanner(new File(".\\req\\MIDI_Control_Change_Codes.txt"));
         String undefinedLine = codeScan.nextLine();
 
         Scanner undefinedScan = new Scanner(undefinedLine);

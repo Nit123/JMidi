@@ -162,7 +162,7 @@ public class JMidiNote implements Comparable<JMidiNote>{
     public static void setUpChannelLookup() throws FileNotFoundException {
         if(CHANNEL_LOOKUP == null) {
             CHANNEL_LOOKUP = new TreeMap<>();
-            Scanner channelScan = new Scanner(new File("MIDI_Channels.txt"));
+            Scanner channelScan = new Scanner(new File(".\\req\\MIDI_Channels.txt"));
 
             while (channelScan.hasNextLine()) {
                 String channelInfo = channelScan.nextLine();

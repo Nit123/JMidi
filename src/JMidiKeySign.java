@@ -11,7 +11,7 @@ public class JMidiKeySign {
 
     public static HashSet<JKeySignature> KEY_SIGNATURES;
 
-    private static String PATH_NAME_FOR_KEY_SIGNATURES = "MIDI_Key_Signature.txt";
+    private static String PATH_NAME_FOR_KEY_SIGNATURES = ".\\req\\MIDI_Key_Signature.txt";
 
     public static void initList() throws FileNotFoundException {
         Scanner fileScan = new Scanner(new File(PATH_NAME_FOR_KEY_SIGNATURES));

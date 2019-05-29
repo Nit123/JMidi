@@ -1,16 +1,24 @@
 import javax.sound.midi.*;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.Queue;
 
+/* Class as a tester for JMidi objects. This will eventually become
+   a MIDI parser which will create a file of a certain format for
+   data analysis. Currently, this will transcribe the information
+   in a given MIDI file into a human readable output (and not necessarily
+   the best output for data analysis...yet).
+ */
 public class MidiTester {
+
+    // Variables that represent the MIDI value for various types of MIDI messages.
+    // Depending on the type of MIDI file, some choose to format a NOTE_OFF message
+    // using the NOTE_OFF tag or simply a NOTE_ON message with 0 velocity.
     public static final int NOTE_ON = 0x90;
     public static final int NOTE_OFF = 0x80;
-    public static final int MIDI_CONTROL_CHANGE = 0xB0;
-    public static final int PROGRAM_CHANGE = 0xC0;
+    public static final int MIDI_CONTROL_CHANGE = 0xB0; // Header for control change messages
+    public static final int PROGRAM_CHANGE = 0xC0; // Header for program (instrument/channel) change messages
 
-
+    // Variables that represent MIDI values for various meta-messages.
     public static final int TIME_SIGNATURE = 0x58;
     public static final int KEY_SIGNATURE = 0x59;
     public static final int TRACK_NAME = 0x03;
@@ -19,10 +27,13 @@ public class MidiTester {
     public static final int END_OF_TRACK = 0x2F;
     public static final int MIDI_PORT_MESSAGE = 0x21;
 
+    // Relative file path of the MIDI file that you want to analyze.
+    public static final String FILE_NAME = ".\\MIDI_Files\\La_Campanella.mid";
 
     public static void main(String[] args) throws Exception {
-        Sequence sequence = MidiSystem.getSequence(new File("Fur_Elise.mid"));
-
+        // Creates a Java Sequence for us to manipulate the MIDI file and
+        // a LinkedList to store the notes when determining when they are turned off.
+        Sequence sequence = MidiSystem.getSequence(new File(FILE_NAME));
         LinkedList<JMidiNote> notes = new LinkedList<>();
 
         int trackNumber = 0;
