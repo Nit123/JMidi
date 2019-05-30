@@ -14,22 +14,24 @@ public class JMidiKeySign {
     private static String PATH_NAME_FOR_KEY_SIGNATURES = ".\\req\\MIDI_Key_Signature.txt";
 
     public static void initList() throws FileNotFoundException {
-        Scanner fileScan = new Scanner(new File(PATH_NAME_FOR_KEY_SIGNATURES));
-        KEY_SIGNATURES = new HashSet<>();
+        if(KEY_SIGNATURES == null){
+            Scanner fileScan = new Scanner(new File(PATH_NAME_FOR_KEY_SIGNATURES));
+            KEY_SIGNATURES = new HashSet<>();
 
-        while (fileScan.hasNextLine()) {
-            String key = fileScan.nextLine();
-            Scanner keyScan = new Scanner(key);
+            while (fileScan.hasNextLine()) {
+                String key = fileScan.nextLine();
+                Scanner keyScan = new Scanner(key);
 
-            while (keyScan.hasNextLine()) {
-                int sharps = keyScan.nextInt();
-                int flats = keyScan.nextInt();
-                String major = keyScan.next();
-                keyScan.next();
-                String minor = keyScan.next();
+                while (keyScan.hasNextLine()) {
+                    int sharps = keyScan.nextInt();
+                    int flats = keyScan.nextInt();
+                    String major = keyScan.next();
+                    keyScan.next();
+                    String minor = keyScan.next();
 
-                JKeySignature keySign = new JKeySignature(sharps, flats, major, minor);
-                KEY_SIGNATURES.add(keySign);
+                    JKeySignature keySign = new JKeySignature(sharps, flats, major, minor);
+                    KEY_SIGNATURES.add(keySign);
+                }
             }
         }
     }

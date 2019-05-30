@@ -36,86 +36,103 @@ public class MidiTester {
         Sequence sequence = MidiSystem.getSequence(new File(FILE_NAME));
         LinkedList<JMidiNote> notes = new LinkedList<>();
 
+        // Goes through each track
         int trackNumber = 0;
         for (Track track : sequence.getTracks()) {
             trackNumber++;
             System.out.println("Track " + trackNumber + ": size = " + track.size());
             System.out.println();
+
+            // Goes through each MIDI message in the track
             for (int i = 0; i < track.size(); i++) {
                 MidiEvent event = track.get(i);
-                //System.out.print("Tick #: " + event.getTick() + " ");
                 MidiMessage message = event.getMessage();
                 if (message instanceof ShortMessage) {
                     ShortMessage sm = (ShortMessage) message;
+                    // Is it a note (on) message?
                     if (sm.getCommand() == NOTE_ON && sm.getData2() != 0) {
+                        // Creates the JMidi object and adds it to the LinkedList.
                         JMidiNote midiNote = new JMidiNote(event.getTick(), sm.getChannel(), sm.getData2(),
                                 sm.getData1(), sequence.getResolution());
                         notes.add(midiNote);
-                        //System.out.println(midiNote);
                     }
+                    // Is it a note OFF message?
                     else if(sm.getData2() == 0){
-                        // NOTE OFF
+                        // Creates specialized note-off JMidiNote
                         JMidiNote noteOff = new JMidiNote(event.getTick(),sm.getChannel(), sm.getData1(), sequence.getResolution());
-                        //System.out.println(sm.getData1());
-                        //System.out.println(noteOff);
-
+                        // Goes through all the notes already played
                         for(JMidiNote possibleNote : notes){
                             if(possibleNote.isOn && noteOff.isEndNoteOfThisNote(possibleNote)){
-                                // found it!
+                                // found it! Note hasn't been turned off and is the same as the note-off message
+                                // Sets tickStop and note length.
                                 possibleNote.setTickStop(noteOff.getTickStart());
                                 possibleNote.setUpNoteLength();
-                                possibleNote.isOn = false;
-                                System.out.println(possibleNote);
-                                break;
+                                possibleNote.isOn = false; // turns off the note
+                                System.out.println(possibleNote); // prints it in place (might be changed later)
+                                break; // stop the search
                             }
                         }
 
                     }
+                    // Is it a MIDI Program Change Message?
                     else if (sm.getCommand() == PROGRAM_CHANGE) {
                         System.out.print("Select Channel Mode: ");
-                        JMidiNote.setUpChannelLookup();
+                        JMidiNote.setUpChannelLookup(); // Sets up the channel lookup map if needed
                         System.out.print(JMidiNote.CHANNEL_LOOKUP.get(sm.getData1()));
                         System.out.println();
                     }
-//                        }
+                    // Is it a MIDI Control Change Message?
                     else if (sm.getCommand() == MIDI_CONTROL_CHANGE) {
-                        JMidiControl.initMessageSet();
+                        JMidiControl.initMessageSet(); // Sets up the control message map if needed
                         JMidiControl control = new JMidiControl(sm.getData1(), sm.getData2());
                         System.out.print(control);
                         System.out.println();
                     }
                 } else {
+                    // Most likely, the message is a MIDI MetaMessage
                     if (message instanceof MetaMessage) {
                         MetaMessage metaMessage = (MetaMessage) message;
                         int messageType = metaMessage.getType();
+                        // Is it a time signature message?
                         if (messageType == TIME_SIGNATURE) {
                             byte[] timeInfo = metaMessage.getData();
                             JMidiTimeSign time = new JMidiTimeSign(timeInfo);
                             System.out.println(time);
-                        } else if (messageType == KEY_SIGNATURE) {
-                            if (JMidiKeySign.KEY_SIGNATURES == null)
-                                JMidiKeySign.initList();
-
+                        }
+                        // Is it a key signature message?
+                        else if (messageType == KEY_SIGNATURE) {
+                            JMidiKeySign.initList(); // Initialize key signature list if needed
                             byte[] keyInfo = metaMessage.getData();
                             JMidiKeySign.JKeySignature keySign = JMidiKeySign.findKey(keyInfo);
                             System.out.println(keySign);
-                        } else if (messageType == TRACK_NAME || messageType == RANDOM_TEXT) {
-                            // NEVER USED IN SAMPLE BUT THIS IS WHAT WE WOULD DO
-                            System.out.println("TRACK NAME:");
-                            byte[] trackInfo = metaMessage.getData();
-                            for (byte info : trackInfo)
-                                System.out.print((char) info);
-                            System.out.println();
-                        } else if (messageType == SET_TEMPO) {
+                        }
+                        // Is it a tempo message?
+                        else if (messageType == SET_TEMPO) {
                             byte[] tempo = metaMessage.getData();
                             JMidiTempo midiTempo = new JMidiTempo(event.getTick(), sequence.getResolution(), tempo);
                             System.out.println(midiTempo);
-                        } else if (messageType == END_OF_TRACK) {
+                        }
+                        // End of Track message?
+                        else if (messageType == END_OF_TRACK) {
                             JMidiControl mes = new JMidiControl();
                             System.out.println(mes);
-                        } else if (messageType == MIDI_PORT_MESSAGE) {
+                            System.out.println();
+                        }
+                        // MIDI port message?
+                        else if (messageType == MIDI_PORT_MESSAGE) {
                             System.out.println("MIDI Port: " + (metaMessage.getData()[0] + 1));
-                        } else
+                        }
+                        // Random text/track name?
+                        else if (messageType == TRACK_NAME || messageType == RANDOM_TEXT) {
+                                // NEVER USED IN SAMPLE BUT THIS IS WHAT WE WOULD DO
+                                System.out.println("TRACK NAME:");
+                                byte[] trackInfo = metaMessage.getData();
+                                for (byte info : trackInfo)
+                                    System.out.print((char) info);
+                                System.out.println();
+                        }
+                        // No idea...
+                         else
                             System.out.print("Type of MetaMessage: " + metaMessage.getType());
 
                         System.out.println();
@@ -125,6 +142,7 @@ public class MidiTester {
                 }
             }
         }
+
     }
 }
 
