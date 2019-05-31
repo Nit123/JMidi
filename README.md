@@ -1,4 +1,4 @@
-![JMidi logo](logo/JMIDI_Logo.svg)
+![JMidi logo](logo/JMIDI_Logo_Small.png)
 # JMidi
 
 JMidi is an open-source Java library used to analyze MIDI files for data analysis.
