@@ -118,7 +118,7 @@ public class JMidiNote implements Comparable<JMidiNote>{
             // actually has a note length
             long deltaTicks = getLengthOfNoteInTicks();
             noteInTermsOfQuarter = deltaTicks / (double) PPQ;
-            noteInTermsOfQuarter = (double)Math.round(noteInTermsOfQuarter * 100d) / 100d;
+            noteInTermsOfQuarter = (double)Math.round(noteInTermsOfQuarter * 1000d) / 1000d;
         }
     }
 

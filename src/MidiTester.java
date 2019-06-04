@@ -1,5 +1,7 @@
 import javax.sound.midi.*;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.LinkedList;
 
 /* Class as a tester for JMidi objects. This will eventually become
@@ -31,6 +33,10 @@ public class MidiTester {
     public static final String FILE_NAME = ".\\MIDI_Files\\La_Campanella.mid";
 
     public static void main(String[] args) throws Exception {
+
+//        PrintStream out = new PrintStream(new FileOutputStream("output.txt"), true);
+//        System.setOut(out);
+
         // Creates a Java Sequence for us to manipulate the MIDI file and
         // a LinkedList to store the notes when determining when they are turned off.
         Sequence sequence = MidiSystem.getSequence(new File(FILE_NAME));
@@ -86,6 +92,7 @@ public class MidiTester {
                         JMidiControl.initMessageSet(); // Sets up the control message map if needed
                         JMidiControl control = new JMidiControl(sm.getData1(), sm.getData2());
                         System.out.print(control);
+                        System.out.println();
                         System.out.println();
                     }
                 } else {
