@@ -30,7 +30,7 @@ public class MidiTester {
     public static final int MIDI_PORT_MESSAGE = 0x21;
 
     // Relative file path of the MIDI file that you want to analyze.
-    public static final String FILE_NAME = ".\\MIDI_Files\\La_Campanella.mid";
+    public static final String FILE_NAME = ".\\MIDI_Files\\Fur_Elise.mid";
 
     public static void main(String[] args) throws Exception {
 

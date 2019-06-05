@@ -4,8 +4,23 @@ import java.io.IOException;
 import java.util.Scanner;
 import java.util.TreeMap;
 
+// Arguable the most important class: this class represents
+// a MIDI note message and can be used to determine when and how
+// long a note is played. This allows a client to disregard MIDI
+// data and see what messages/notes are contained in the MIDI file
 public class JMidiNote implements Comparable<JMidiNote>{
 
+    // A LOT OF INSTANCE VARIABLES:
+    // tickStart: the tick the note starts.
+    // tickStop: the tick the note stops (aka the tick where the NOTE OFF message occurs).
+    // channelName: name of the channel the note is played on
+    // pitchNotation: aka the "name of the note" (ex: C4, E3, etc.)
+    // clef: this is the "suggested" clef as composers are weird and transpose music in different ways.
+    //       MIDI does not have accesses to these transpositions so we use TREBLE_SWITCH to signify the
+    //       the first note represented in treble clef. Currently, this only supports treble/bass clef.
+    // dynamic: how loud the note is; based on MIDI velocity
+    // isOn: used when determining tickStop; is the current note still "on"?
+    // noteInTermsOfQuarter: the ratio of the note's length in terms of a quarter note.
     private long tickStart;
     private long tickStop;
     private String channelName;
@@ -15,9 +30,10 @@ public class JMidiNote implements Comparable<JMidiNote>{
     public boolean isOn;
     private double noteInTermsOfQuarter;
 
+    // Pulses per quarter-note or ticks per quarter note, used to determine length of the MIDI note.
     private final int PPQ;
 
-    // VELOCITY TO DYNAMIC (upper bounds)
+    // VELOCITY TO DYNAMIC (upper) BOUNDS
     // Somewhat arbitrary values found from this: https://en.wikipedia.org/wiki/File:Dynamic%27s_Note_Velocity.svg
     private static final int PPP = 16;
     private static final int PP = 33;
@@ -37,7 +53,7 @@ public class JMidiNote implements Comparable<JMidiNote>{
     // clef delineator
     private final String TREBLE_SWITCH = "C4";
 
-    // Constuctor for a note before tickStop is known
+    // Constructor for a note before tickStop is known
     public JMidiNote (long TickStart, int channelNum, int velocity, int key, int ppq) throws IOException {
         PPQ = ppq;
 
@@ -72,12 +88,12 @@ public class JMidiNote implements Comparable<JMidiNote>{
             pitchNotation = NOTE_NAMES[note] + octave + " (theoretical)";
 
         // set up clef
-        if(octave < 4)
+        if(octave < Integer.parseInt(TREBLE_SWITCH.charAt(1) + ""))
             clef = "BASS";
-        else if(octave > 4)
+        else if(octave > Integer.parseInt(TREBLE_SWITCH.charAt(1) + ""))
             clef = "TREBLE";
         else{
-            if(NOTE_NAMES[note].compareTo("C") < 0)
+            if(NOTE_NAMES[note].compareTo(TREBLE_SWITCH.substring(0,1)) < 0)
                 clef = "BASS";
             else
                 clef = "TREBLE";
@@ -114,12 +130,12 @@ public class JMidiNote implements Comparable<JMidiNote>{
     }
 
     public void setUpNoteLength(){
-        if(getLengthOfNoteInTicks() > 0){
-            // actually has a note length
-            long deltaTicks = getLengthOfNoteInTicks();
-            noteInTermsOfQuarter = deltaTicks / (double) PPQ;
-            noteInTermsOfQuarter = (double)Math.round(noteInTermsOfQuarter * 1000d) / 1000d;
-        }
+        assert getLengthOfNoteInTicks() > 0 : "Note is not initialized correctly to check length";
+
+        // actually has a note length
+        long deltaTicks = getLengthOfNoteInTicks();
+        noteInTermsOfQuarter = deltaTicks / (double) PPQ;
+        noteInTermsOfQuarter = (double)Math.round(noteInTermsOfQuarter * 1000d) / 1000d;
     }
 
     public boolean isEndNoteOfThisNote(JMidiNote startNote){
