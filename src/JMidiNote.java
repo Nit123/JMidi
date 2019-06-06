@@ -53,23 +53,33 @@ public class JMidiNote implements Comparable<JMidiNote>{
     // clef delineator
     private final String TREBLE_SWITCH = "C4";
 
-    // Constructor for a note before tickStop is known
+    // DO NOT CHANGE UNLESS THE SPECIFIED FILE IS IN A NEW LOCATION.
+    // This file contains the MIDI Channel Codes in a specific format. If altered, this library
+    // will no longer work.
+    private static final String PATH_NAME_FOR_CHANNELS = ".\\req\\MIDI_Channels.txt";
+
+    // Constructor for a note before tickStop is known, aka the "NOTE ON" constructor
     public JMidiNote (long TickStart, int channelNum, int velocity, int key, int ppq) throws IOException {
         PPQ = ppq;
 
+        // if velocity is 0...then it's a note off
         if (velocity == 0)
             isOn = false;
         else {
             isOn = true;
         }
 
+        // Otherwise, set the dynamic!
         setDynamic(velocity);
 
+        // Makes sense
         this.tickStart = TickStart;
+
         // default value of tickStop when unknown will be 0 since we can
         // only start a Note at tick 0.
         this.tickStop = 0;
 
+        // Initialize the channels if necessary
         if(CHANNEL_LOOKUP == null)
             setUpChannelLookup();
 
@@ -77,26 +87,29 @@ public class JMidiNote implements Comparable<JMidiNote>{
         if(CHANNEL_LOOKUP.containsKey(channelNum))
          channelName = CHANNEL_LOOKUP.get(channelNum);
         else
+            // No valid key...then tell me what it is.
             channelName = "" + channelNum;
 
         // Set up pitch notation
-        int octave = (key / 12) - 1;
-        int note = key % 12;
+        int octave = (key / 12) - 1; // number attached to key
+        int note = key % 12; // index of NOTE_NAMES
         if(octave >= 0)
+            // got the pitch notation
             pitchNotation = NOTE_NAMES[note] + octave;
         else
+            // Because MIDI is WEIRD...(negative octaves)
             pitchNotation = NOTE_NAMES[note] + octave + " (theoretical)";
 
-        // set up clef
+        // set up clef (only BASS and TREBLE)
         if(octave < Integer.parseInt(TREBLE_SWITCH.charAt(1) + ""))
-            clef = "BASS";
+            clef = "BASS"; // lower than C4
         else if(octave > Integer.parseInt(TREBLE_SWITCH.charAt(1) + ""))
-            clef = "TREBLE";
+            clef = "TREBLE"; // higher than C4
         else{
             if(NOTE_NAMES[note].compareTo(TREBLE_SWITCH.substring(0,1)) < 0)
-                clef = "BASS";
+                clef = "BASS"; // in octave 4 but lower than C
             else
-                clef = "TREBLE";
+                clef = "TREBLE"; // in octave 4 but higher than C
         }
 
 
@@ -104,23 +117,25 @@ public class JMidiNote implements Comparable<JMidiNote>{
     }
 
     // Used for temporary JMidiNotes that are actually note-off
-    // messages.
+    // messages...channelNum must be in CHANNEL_LOOKUP or the program will fail.
     public JMidiNote(long tickStart, int channelNum, int key, int ppq) throws IOException{
-        // Assumes we have a valid key for the channel
         PPQ = ppq;
         this.tickStart = tickStart;
 
+        // isOn is false since it represents a note-off message
         isOn = false;
 
+        // Set it up if you have to.
         if(CHANNEL_LOOKUP == null)
             setUpChannelLookup();
 
+        //
         if(CHANNEL_LOOKUP.containsKey(channelNum))
             channelName = CHANNEL_LOOKUP.get(channelNum);
         else
-            channelName = "" + channelNum;
+            throw new IllegalStateException("Cannot make note-off of a non-existent channel.");
 
-        // Set up pitch notation
+        // Set up pitch notation... same as before
         int octave = (key / 12) - 1;
         int note = key % 12;
         if(octave >= 0)
@@ -129,73 +144,89 @@ public class JMidiNote implements Comparable<JMidiNote>{
             pitchNotation = NOTE_NAMES[note] + octave + " (theoretical)";
     }
 
+    // Calculates the note length in terms of a quarter note
     public void setUpNoteLength(){
-        assert getLengthOfNoteInTicks() > 0 : "Note is not initialized correctly to check length";
+        long deltaTicks = getLengthOfNoteInTicks(); // grabs length in ticks
+
+        // cannot be negative
+        if(deltaTicks < 0)
+            throw new IllegalStateException("Cannot calculate negative note length.");
 
         // actually has a note length
-        long deltaTicks = getLengthOfNoteInTicks();
         noteInTermsOfQuarter = deltaTicks / (double) PPQ;
-        noteInTermsOfQuarter = (double)Math.round(noteInTermsOfQuarter * 1000d) / 1000d;
+        noteInTermsOfQuarter = (double)Math.round(noteInTermsOfQuarter * 1000d) / 1000d; // rounds it to 3 decimal places
     }
 
+    // Checks whether the current JMidiNote (which must be created using the note-off constructor) is the
+    // end of a given JMidiNote (startNote)
     public boolean isEndNoteOfThisNote(JMidiNote startNote){
+        // Can only be called by note-off JMidiNotes
         if(isOn)
             throw new IllegalStateException("isEndNoteOfThisNote can only be called by a note-off JMidiNote.");
 
+        // must have same pitchNotation, same Channel, and same "Tempo" (represented by PPQ)
         return (startNote.pitchNotation.equals(pitchNotation) && channelName.equals(startNote.channelName) &&
                 startNote.PPQ == PPQ);
     }
 
+    // Self-explanatory method
     private long getLengthOfNoteInTicks(){
         return tickStop - tickStart;
     }
 
+    // Sets up the dynamic of the JMidiNote using its velocity.
     private void setDynamic(int velocity){
         if(velocity == 0)
-            dynamic = -1;
+            dynamic = -1; // note-off has dynamic = -1 so we don't accidentally assign it to a dynamic value
         else if(velocity <= PPP){
-            dynamic = 0;
+            dynamic = 0; // PPP
         }
         else if(velocity <= PP){
-            dynamic = 1;
+            dynamic = 1; // PP
         }
         else if(velocity <= P){
-            dynamic = 2;
+            dynamic = 2; // P
         }
         else if(velocity <= MP)
-            dynamic = 3;
+            dynamic = 3; // MP
         else if(velocity <= MF)
-           dynamic = 4;
+           dynamic = 4; // MF
         else if(velocity <= F)
-            dynamic = 5;
+            dynamic = 5; // F
         else if(velocity <= FF)
-            dynamic = 6;
+            dynamic = 6; // FF
         else if(velocity <= FFF)
-           dynamic = 7;
+           dynamic = 7; // FFF
     }
 
+    // Method that sets up CHANNEL_LOOKUP using the
     // Credit to Ansh Shah for coming up with a text file to store MIDI channel information.
     public static void setUpChannelLookup() throws FileNotFoundException {
+        // Method only does stuff if we haven't set it up already.
         if(CHANNEL_LOOKUP == null) {
+            // Creates the TreeMap and a Scanner so we can go through the file.
             CHANNEL_LOOKUP = new TreeMap<>();
-            Scanner channelScan = new Scanner(new File(".\\req\\MIDI_Channels.txt"));
+            Scanner channelScan = new Scanner(new File(PATH_NAME_FOR_CHANNELS));
 
+            // While the file has information..
             while (channelScan.hasNextLine()) {
+                // Go through each line using Scanner
                 String channelInfo = channelScan.nextLine();
                 Scanner infoScanner = new Scanner(channelInfo);
 
+                // While the current line has information..
                 while (infoScanner.hasNext()) {
-                    int channelNumber = infoScanner.nextInt() - 1;
-                    String channelName = infoScanner.next();
-                    CHANNEL_LOOKUP.put(channelNumber, channelName);
+                    int channelNumber = infoScanner.nextInt() - 1; // got the channel number
+                    String channelName = infoScanner.next(); // channelName
+                    CHANNEL_LOOKUP.put(channelNumber, channelName); // add it to the TreeMap
                 }
 
             }
         }
-
-        //System.out.println(CHANNEL_LOOKUP);
     }
 
+    // Prints it out in a human readable (though inefficient) manner,
+    // will be changed to toDescriptiveString in version 0.2
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
@@ -231,20 +262,25 @@ public class JMidiNote implements Comparable<JMidiNote>{
         return stringBuilder.toString();
     }
 
+    // Setter for TickStop so we can update notes as we find out when they stop.
     public void setTickStop(long tickStop) {
         this.tickStop = tickStop;
     }
 
+    // Getter for TickStart so we can check what their start times are.
     public long getTickStart() {
         return tickStart;
     }
 
+    // compareTo is used so we can implement sorting in the near future.
     @Override
     public int compareTo(JMidiNote o) {
         if(tickStart > o.tickStart)
-            return 1;
+            return 1; // this one is later
+        else if(tickStart == o.tickStart)
+            return 0; // same timing
         else {
-            return -1;
+            return -1; // this one is earlier.
         }
     }
 }
