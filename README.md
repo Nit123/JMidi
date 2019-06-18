@@ -29,4 +29,21 @@ is coming soon.
 
 Similarly, a user guide that explains the library in more detail is in the works.
 
+**Please do not mess with the files in the [req](https://github.com/Nit123/JMidi/tree/master/req) directory 
+as they are in a specialized format that allows the library to read in the MIDI constants.**
+
+## Getting Started ##
+Simply clone or download this repo and run the MidiTester.java file. For more help on how to 
+run Java files, please see this [website](https://www.tutorialspoint.com/How-to-run-a-java-program) or Google it!
+
+## Special Thanks ##
+Special thanks to Fronrich Puno for the logo and helping me use MuseScore to obtain the MIDI
+tester files in the [MIDI_FILES](https://github.com/Nit123/JMidi/tree/master/MIDI_Files) directory,
+Ansh Shah for envisioning the text file formatting for all the MIDI constants, and Mason
+Eastman for all the music theory help!
+
+Finally, thanks to [@ClassicMan](https://musescore.com/classicman) for transcribing
+the music on MuseScore which generated the MIDI files used as samples.
+
+
 ### In-depth Documentation coming soon! ###
