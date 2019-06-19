@@ -1,4 +1,4 @@
-![JMidi logo](logo/JMIDI_Logo_Small.png)
+![JMidi logo](logo/SocialPreviewLogo.png)
 
 # JMidi
  
