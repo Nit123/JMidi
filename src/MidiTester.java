@@ -2,7 +2,9 @@ import javax.sound.midi.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.TreeMap;
 
 /* Class as a tester for JMidi objects. This will eventually become
    a MIDI parser which will create a file of a certain format for
@@ -40,7 +42,9 @@ public class MidiTester {
         // Creates a Java Sequence for us to manipulate the MIDI file and
         // a LinkedList to store the notes when determining when they are turned off.
         Sequence sequence = MidiSystem.getSequence(new File(FILE_NAME));
-        LinkedList<JMidiNote> notes = new LinkedList<>();
+        LinkedList<JMidiNote> notesPlayed = new LinkedList<>();
+
+        TreeMap<Long, JMidiNoteCluster> noteClusters = new TreeMap<>();
 
         // Goes through each track
         int trackNumber = 0;
@@ -60,21 +64,36 @@ public class MidiTester {
                         // Creates the JMidi object and adds it to the LinkedList.
                         JMidiNote midiNote = new JMidiNote(event.getTick(), sm.getChannel(), sm.getData2(),
                                 sm.getData1(), sequence.getResolution());
-                        notes.add(midiNote);
+                        notesPlayed.add(midiNote);
                     }
                     // Is it a note OFF message?
                     else if(sm.getData2() == 0){
                         // Creates specialized note-off JMidiNote
                         JMidiNote noteOff = new JMidiNote(event.getTick(),sm.getChannel(), sm.getData1(), sequence.getResolution());
                         // Goes through all the notes already played
-                        for(JMidiNote possibleNote : notes){
+                        for(JMidiNote possibleNote : notesPlayed){
                             if(possibleNote.isOn && noteOff.isEndNoteOfThisNote(possibleNote)){
                                 // found it! Note hasn't been turned off and is the same as the note-off message
                                 // Sets tickStop and note length.
                                 possibleNote.setTickStop(noteOff.getTickStart());
                                 possibleNote.setUpNoteLength();
                                 possibleNote.isOn = false; // turns off the note
-                                System.out.println(possibleNote); // prints it in place (might be changed later)
+
+                                if(!noteClusters.containsKey(possibleNote.getTickStart())){
+                                    // new note cluster!
+                                    JMidiNoteCluster noteCluster = new JMidiNoteCluster(possibleNote.getTickStart(),
+                                            possibleNote);
+                                    noteClusters.put(possibleNote.getTickStart(),noteCluster);
+                                }
+                                else{
+                                    // old note cluster
+                                    JMidiNoteCluster noteCluster = noteClusters.get(possibleNote.getTickStart());
+                                    noteCluster.cluster.add(possibleNote);
+                                    noteClusters.put(possibleNote.getTickStart(), noteCluster);
+                                }
+
+                                //System.out.println(possibleNote); // prints it in place (might be changed later)
+                                notesPlayed.remove(possibleNote);
                                 break; // stop the search
                             }
                         }
@@ -148,8 +167,39 @@ public class MidiTester {
 
                 }
             }
+
+            int i = 0;
+            for(long tickStart : noteClusters.keySet()){
+                i++;
+                JMidiNoteCluster cluster = noteClusters.get(tickStart);
+                for(JMidiNote note : cluster.cluster){
+                    System.out.println("*** CLUSTER #" + i + " ***");
+                    System.out.println(note);
+                }
+            }
         }
 
+    }
+
+    public static class JMidiNoteCluster implements Comparable<JMidiNoteCluster> {
+        public long startingTick;
+        public ArrayList<JMidiNote> cluster;
+
+        public JMidiNoteCluster(long start, JMidiNote firstNote){
+            startingTick = start;
+            cluster = new ArrayList<>();
+            cluster.add(firstNote);
+        }
+
+        @Override
+        public int compareTo(JMidiNoteCluster o) {
+            if(this.startingTick < o.startingTick)
+                return -1;
+            else if(this.startingTick > o.startingTick)
+                return 1;
+            else
+                return 0;
+        }
     }
 }
 
