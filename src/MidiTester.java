@@ -123,7 +123,7 @@ public class MidiTester {
                         if (messageType == TIME_SIGNATURE) {
                             byte[] timeInfo = metaMessage.getData();
                             JMidiTimeSign time = new JMidiTimeSign(timeInfo);
-                            System.out.println(time);
+                            System.out.println("Tick #: " + event.getTick()+ time);
                         }
                         // Is it a key signature message?
                         else if (messageType == KEY_SIGNATURE) {
@@ -172,10 +172,32 @@ public class MidiTester {
             for(long tickStart : noteClusters.keySet()){
                 i++;
                 JMidiNoteCluster cluster = noteClusters.get(tickStart);
+                // format: starting tick, note, dynamic, ratio to quarter note
+                System.out.print(tickStart + "," + "[");
                 for(JMidiNote note : cluster.cluster){
-                    System.out.println("*** CLUSTER #" + i + " ***");
-                    System.out.println(note);
+                    System.out.print(note.channelNumber + ",");
                 }
+
+                System.out.print("],");
+                System.out.print("[");
+                for(JMidiNote note : cluster.cluster){
+                    System.out.print(note + ",");
+                }
+
+
+                System.out.print("],");
+                System.out.print("[");
+                for(JMidiNote note : cluster.cluster){
+                    System.out.print(note.getDynamic() + ",");
+                }
+
+                System.out.print("],");
+                System.out.print("[");
+                for(JMidiNote note : cluster.cluster){
+                    System.out.print(note.getNoteInTermsOfQuarter() + ",");
+                }
+
+                System.out.println("]");
             }
         }
 

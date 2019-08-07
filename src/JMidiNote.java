@@ -30,6 +30,9 @@ public class JMidiNote implements Comparable<JMidiNote>{
     public boolean isOn;
     private double noteInTermsOfQuarter;
 
+    // Used for toString
+    public int channelNumber;
+
     // Pulses per quarter-note or ticks per quarter note, used to determine length of the MIDI note.
     private final int PPQ;
 
@@ -43,6 +46,8 @@ public class JMidiNote implements Comparable<JMidiNote>{
     private static final int F = 96;
     private static final int FF = 112;
     private static final int FFF = 127;
+
+    private static final String[] DYNAMIC_NAMES = {"PPP", "PP", "P", "MP", "MF", "F", "FF", "FFF"};
 
     // Note names
     public static final String[] NOTE_NAMES = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
@@ -61,6 +66,7 @@ public class JMidiNote implements Comparable<JMidiNote>{
     // Constructor for a note before tickStop is known, aka the "NOTE ON" constructor
     public JMidiNote (long TickStart, int channelNum, int velocity, int key, int ppq) throws IOException {
         PPQ = ppq;
+        channelNumber = channelNum;
 
         // if velocity is 0...then it's a note off
         if (velocity == 0)
@@ -199,6 +205,8 @@ public class JMidiNote implements Comparable<JMidiNote>{
            dynamic = 7; // FFF
     }
 
+
+
     // Method that sets up CHANNEL_LOOKUP using the
     // Credit to Ansh Shah for coming up with a text file to store MIDI channel information.
     public static void setUpChannelLookup() throws FileNotFoundException {
@@ -225,10 +233,21 @@ public class JMidiNote implements Comparable<JMidiNote>{
         }
     }
 
+    public String toString(){
+        return pitchNotation;
+    }
+
+    public String getDynamic(){
+        return DYNAMIC_NAMES[dynamic];
+    }
+
+    public String getNoteInTermsOfQuarter(){
+        return "" + noteInTermsOfQuarter;
+    }
+
     // Prints it out in a human readable (though inefficient) manner,
     // will be changed to toDescriptiveString in version 0.2
-    @Override
-    public String toString() {
+    public String toDescriptiveString() {
         StringBuilder stringBuilder = new StringBuilder();
         String[] DYNAMIC_NAMES = new String[]{"PPP", "PP", "P", "MP", "MF", "F", "FF", "FFF"};
 
@@ -260,6 +279,10 @@ public class JMidiNote implements Comparable<JMidiNote>{
 
 
         return stringBuilder.toString();
+    }
+
+    public String getChannelName(){
+        return channelName;
     }
 
     // Setter for TickStop so we can update notes as we find out when they stop.
